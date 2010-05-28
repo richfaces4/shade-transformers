@@ -9,7 +9,7 @@
 
     <groupId>org.richfaces.build.resources</groupId>
     <artifactId>faces-shade-transformers</artifactId>
-    <version>1</version>
+    <version>2-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>JSF configuration files transformers for maven-shade-plugin</name>
 
@@ -53,8 +53,8 @@
     
     <!-- SCM and distribution management -->
     <scm>
-        <connection>scm:svn:http://anonsvn.jboss.org/repos/richfaces/root/build/resources/tags/faces-shade-transformers-1</connection>
-        <developerConnection>scm:svn:https://svn.jboss.org/repos/richfaces/root/build/resources/tags/faces-shade-transformers-1</developerConnection>
-        <url>scm:svn:https://svn.jboss.org/repos/richfaces/root/build/resources/tags/faces-shade-transformers-1</url>
+        <connection>scm:svn:http://anonsvn.jboss.org/repos/richfaces/root/build/resources/trunk/faces-shade-transformers</connection>
+        <developerConnection>scm:svn:https://svn.jboss.org/repos/richfaces/root/build/resources/trunk/faces-shade-transformers</developerConnection>
+        <url>http://fisheye.jboss.org/browse/richfaces</url>
     </scm>
 </project>
