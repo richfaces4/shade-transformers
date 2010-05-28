@@ -12,7 +12,7 @@
 	<artifactId>faces-shade-transformers</artifactId>
 	<version>4.0.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
-	<name>JSF configuration files ransformers for maven-shade-plugin</name>
+	<name>JSF configuration files transformers for maven-shade-plugin</name>
 
 	<build>
 		<plugins>
