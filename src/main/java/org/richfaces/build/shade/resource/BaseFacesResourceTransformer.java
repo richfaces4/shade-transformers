@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
@@ -51,25 +52,32 @@ public abstract class BaseFacesResourceTransformer implements ResourceTransforme
 
     protected static final String META_INF_PATH = "META-INF/";
 
-    protected static final String JAVAEE_URI = "http://java.sun.com/xml/ns/javaee";
-
     protected static final String JAVAEE_PREFIX = "javaee";
 
-    protected static final Namespace JAVAEE_NAMESPACE = Namespace.getNamespace(JAVAEE_PREFIX, JAVAEE_URI);
+    protected static final String JAVAEE_URI = "http://java.sun.com/xml/ns/javaee";
 
-    protected static final Namespace XSI_NAMESPACE = Namespace.getNamespace("xsi", "http://www.w3.org/2001/XMLSchema-instance");
-
+    private static final String XSI_URI = "http://www.w3.org/2001/XMLSchema-instance";
+    
+    private static final String XSI_PREFIX = "xsi";
+    
+    protected NamespacesTracker namespacesFactory = new NamespacesTracker();
+    
     protected static XPath createXPath(String path) throws JDOMException {
         XPath xPath = XPath.newInstance(path);
-        xPath.addNamespace(JAVAEE_NAMESPACE);
-        xPath.addNamespace(XSI_NAMESPACE);
+        xPath.addNamespace(Namespace.getNamespace(JAVAEE_PREFIX, JAVAEE_URI));
+        xPath.addNamespace(Namespace.getNamespace(XSI_PREFIX, XSI_URI));
 
         return xPath;
     }
 
+    protected Namespace getJavaEENamespace() {
+        return namespacesFactory.getNamespace(JAVAEE_URI, null);
+    }
+    
     protected void addSchemaLocation(Element element, String schemaLocation) {
         if (schemaLocation != null && schemaLocation.length() != 0) {
-            element.setAttribute("schemaLocation", JAVAEE_URI + " " + schemaLocation, XSI_NAMESPACE);
+            Namespace xsiNamespace = namespacesFactory.getNamespace(XSI_URI, XSI_PREFIX);
+            element.setAttribute("schemaLocation", JAVAEE_URI + " " + schemaLocation, xsiNamespace);
         }
     }
     
@@ -77,15 +85,15 @@ public abstract class BaseFacesResourceTransformer implements ResourceTransforme
         if (object instanceof Element) {
             Element element = (Element) object;
 
-            if (JAVAEE_URI.equals(element.getNamespaceURI())) {
-                element.setNamespace(JAVAEE_NAMESPACE);
-            }
+            element.setNamespace(namespacesFactory.getNamespace(element.getNamespace()));
 
             for (Object attributeObject : element.getAttributes()) {
                 Attribute attribute = (Attribute) attributeObject;
 
-                if (JAVAEE_URI.equals(attribute.getNamespaceURI())) {
-                    attribute.setNamespace(JAVAEE_NAMESPACE);
+                if (!Namespace.NO_NAMESPACE.equals(attribute.getNamespace())) {
+                    attribute.setNamespace(namespacesFactory.getNamespace(attribute.getNamespace()));
+                } else {
+                    attribute.setNamespace(element.getNamespace());
                 }
             }
 
@@ -97,7 +105,7 @@ public abstract class BaseFacesResourceTransformer implements ResourceTransforme
 
     protected boolean isJavaEEOrDefaultNamespace(Element element) {
         String namespaceURI = element.getNamespaceURI();
-        if (namespaceURI == null || namespaceURI.length() == 0) {
+        if (namespaceURI == null || namespaceURI.trim().length() == 0) {
             return true;
         }
         
@@ -123,11 +131,26 @@ public abstract class BaseFacesResourceTransformer implements ResourceTransforme
         jos.putNextEntry(new JarEntry(resourceName));
         Format prettyFormat = Format.getPrettyFormat();
         prettyFormat.setIndent("    ");
+
+        Element rootElement = document.getRootElement();
+        Collection<Namespace> namespaces = namespacesFactory.getNamespaces();
+        for (Namespace namespace : namespaces) {
+            if (namespace.getPrefix().length() == 0) {
+                continue;
+            }
+            
+            rootElement.addNamespaceDeclaration(namespace);
+        }
+        
         new XMLOutputter(prettyFormat).output(document, jos);
     }
 
     protected abstract void processDocument(String resource, Document document, List relocators) throws JDOMException;
 
+    protected void resetTransformer() {
+        namespacesFactory = new NamespacesTracker();
+    }
+    
     protected String getMetaInfResourceName(String resource) {
         if (!resource.startsWith(META_INF_PATH)) {
             return null;

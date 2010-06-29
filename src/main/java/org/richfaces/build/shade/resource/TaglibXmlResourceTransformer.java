@@ -35,6 +35,7 @@ import java.util.jar.JarOutputStream;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
+import org.jdom.Namespace;
 import org.jdom.filter.ElementFilter;
 import org.jdom.filter.Filter;
 import org.jdom.xpath.XPath;
@@ -65,7 +66,7 @@ public class TaglibXmlResourceTransformer extends BaseFacesResourceTransformer {
     private Map<String, Document> passThroughLibraries = new HashMap<String, Document>();
 
     private Taglib[] taglibs = new Taglib[0];
-    
+
     private Comparator<Element> createElementsComparator() throws JDOMException {
         List<String> elements = Arrays.asList("description", "display-name", "icon", 
             "library-class", NAMESPACE, "composite-library-name", TAG, FUNCTION, "taglib-extension");
@@ -73,13 +74,13 @@ public class TaglibXmlResourceTransformer extends BaseFacesResourceTransformer {
         Map<String, XPath> elementNameExpressions = new HashMap<String, XPath>();
         String tagPathExpr = MessageFormat.format("./{0}:{1}|./{1}", JAVAEE_PREFIX, TAG_NAME);
         elementNameExpressions.put(TAG, createXPath(tagPathExpr));
-        
+
         String fnPathExpr = MessageFormat.format("./{0}:{1}|./{1}", JAVAEE_PREFIX, FUNCTION_NAME);
         elementNameExpressions.put(FUNCTION, createXPath(fnPathExpr));
-        
+
         return new ElementsComparator(JAVAEE_URI, elements, elementNameExpressions);
     }
-    
+
     private String getShortName(String namespaceUri) {
         int idx = namespaceUri.lastIndexOf('/');
         if (idx < 0) {
@@ -89,12 +90,6 @@ public class TaglibXmlResourceTransformer extends BaseFacesResourceTransformer {
         }
     }
 
-    private Element createNamespaceElement(String namespaceUri) {
-        Element nsElement = new Element(NAMESPACE, JAVAEE_NAMESPACE);
-        nsElement.setText(namespaceUri);
-        return nsElement;
-    }
-    
     private String getFileName(String shortName) {
         return META_INF_PATH + shortName + TAGLIB_XML_FILE_EXTENSION;
     }
@@ -113,7 +108,7 @@ public class TaglibXmlResourceTransformer extends BaseFacesResourceTransformer {
             throw new IllegalArgumentException("Root element namespace: " + element.getNamespaceURI());
         }
     }
-    
+
     public boolean hasTransformedResource() {
         return !tagLibraries.isEmpty() || !passThroughLibraries.isEmpty();
     }
@@ -126,21 +121,18 @@ public class TaglibXmlResourceTransformer extends BaseFacesResourceTransformer {
 
                 appendToStream(resourceName, document, os);
             }
-        } finally {
-            passThroughLibraries.clear();
-        }
 
-        if (!tagLibraries.isEmpty()) {
-            Comparator<Element> elementsComparator;
-            try {
-                elementsComparator = createElementsComparator();
-            } catch (JDOMException e) {
-                throw new RuntimeException(e.getMessage(), e);
-            }
+            if (!tagLibraries.isEmpty()) {
+                Comparator<Element> elementsComparator;
+                try {
+                    elementsComparator = createElementsComparator();
+                } catch (JDOMException e) {
+                    throw new RuntimeException(e.getMessage(), e);
+                }
 
-            Filter filter = new ElementFilter().and(new ElementFilter(NAMESPACE, JAVAEE_NAMESPACE).negate());
-            
-            try {
+                Namespace javaEENamespace = getJavaEENamespace();
+                Filter filter = new ElementFilter().and(new ElementFilter(NAMESPACE, javaEENamespace).negate());
+
                 for (Map.Entry<String, List<Document>> entry : tagLibraries.entrySet()) {
                     String namespaceUri = entry.getKey();
                     String shortName = getShortName(namespaceUri);
@@ -148,37 +140,47 @@ public class TaglibXmlResourceTransformer extends BaseFacesResourceTransformer {
 
                     Document document = new org.jdom.Document();
 
-                    Element rootElement = new Element(FACELET_TAGLIB, JAVAEE_NAMESPACE);
+                    Element rootElement = new Element(FACELET_TAGLIB, javaEENamespace);
                     rootElement.setAttribute(VERSION, CURRENT_VERSION);
                     addSchemaLocation(rootElement, "http://java.sun.com/xml/ns/javaee/web-facelettaglibrary_2_0.xsd");
                     rootElement.setAttribute(ID, shortName);
-                    
+
                     document.addContent(rootElement);
 
                     List<Element> elements = new ArrayList<Element>();
-                    elements.add(createNamespaceElement(namespaceUri));
-                    
+
+                    Element nsElement = new Element(NAMESPACE, javaEENamespace);
+                    nsElement.setText(namespaceUri);
+                    elements.add(nsElement);
+
                     for (Document sourceDocument : sourceDocuments) {
                         Element sourceRootElement = sourceDocument.getRootElement();
                         checkRootElement(sourceRootElement);
-                        
+
                         List<Element> tagsContent = checkedList(sourceRootElement.getContent(filter), Element.class);
                         for (Element tagElement: tagsContent) {
                             Element clonedElement = cloneAndImportElement(tagElement);
                             elements.add(clonedElement);
                         }
                     }
-                    
+
                     Collections.sort(elements, elementsComparator);
                     rootElement.addContent(elements);
-                    
+
                     String fileName = getFileName(shortName);
                     appendToStream(fileName, document, os);
                 }
-            } finally {
-                tagLibraries.clear();
             }
+        } finally {
+            resetTransformer();
         }
+    }
+
+    @Override
+    protected void resetTransformer() {
+        super.resetTransformer();
+        passThroughLibraries.clear();
+        tagLibraries.clear();
     }
 
     @Override
@@ -193,7 +195,7 @@ public class TaglibXmlResourceTransformer extends BaseFacesResourceTransformer {
                     break;
                 }
             }
-            
+
             List<Document> documents = tagLibraries.get(namespaceUri);
             if (documents == null) {
                 documents = new ArrayList<Document>();

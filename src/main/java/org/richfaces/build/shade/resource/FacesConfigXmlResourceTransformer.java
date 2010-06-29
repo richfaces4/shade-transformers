@@ -37,6 +37,7 @@ import java.util.jar.JarOutputStream;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
+import org.jdom.Namespace;
 import org.jdom.filter.ElementFilter;
 import org.jdom.filter.Filter;
 import org.jdom.xpath.XPath;
@@ -158,7 +159,7 @@ public class FacesConfigXmlResourceTransformer extends BaseFacesResourceTransfor
             }
         }
         
-        Filter renderkitIdFilter = new ElementFilter().and(new ElementFilter(RENDER_KIT_ID, JAVAEE_NAMESPACE).negate());
+        Filter renderkitIdFilter = new ElementFilter().and(new ElementFilter(RENDER_KIT_ID, getJavaEENamespace()).negate());
         XPath renderKitIdXPath = createXPath(RENDER_KIT_ID_EXPRESSION);
         List<Element> children = checkedList(rootElement.getChildren(), Element.class);
         for (Element child : children) {
@@ -225,7 +226,8 @@ public class FacesConfigXmlResourceTransformer extends BaseFacesResourceTransfor
             }
             
             Document document = new Document();
-            Element rootElement = new Element(FACES_CONFIG, JAVAEE_NAMESPACE);
+            Namespace javaEENamespace = getJavaEENamespace();
+            Element rootElement = new Element(FACES_CONFIG, javaEENamespace);
             rootElement.setAttribute(VERSION, CURRENT_VERSION);
             
             if (metadataComplete != ThreeState.UNDEFINED) {
@@ -241,7 +243,7 @@ public class FacesConfigXmlResourceTransformer extends BaseFacesResourceTransfor
                 String elementName = entry.getKey();
                 List<Element> aggregatorElementChildren = entry.getValue();
                 
-                Element aggregatorElement = new Element(elementName, JAVAEE_NAMESPACE);
+                Element aggregatorElement = new Element(elementName, javaEENamespace);
                 rootElementChildren.add(aggregatorElement);
 
                 Collections.sort(aggregatorElementChildren, comparator);
@@ -252,11 +254,11 @@ public class FacesConfigXmlResourceTransformer extends BaseFacesResourceTransfor
                 String renderkitId = entry.getKey();
                 List<Element> renderkitElementChildren = entry.getValue();
                 
-                Element renderkitElement = new Element(RENDER_KIT, JAVAEE_NAMESPACE);
+                Element renderkitElement = new Element(RENDER_KIT, javaEENamespace);
                 rootElementChildren.add(renderkitElement);
                 
                 if (renderkitId.length() != 0) {
-                    Element renderkitIdElement = new Element(RENDER_KIT_ID, JAVAEE_NAMESPACE);
+                    Element renderkitIdElement = new Element(RENDER_KIT_ID, javaEENamespace);
                     renderkitIdElement.setText(renderkitId);
                     renderkitElementChildren.add(renderkitIdElement);
                 }
@@ -271,13 +273,19 @@ public class FacesConfigXmlResourceTransformer extends BaseFacesResourceTransfor
             
             appendToStream(FACES_CONFIG_FILE_PATH, document, os);
         } finally {
-            hasProcessedConfigFiles = false;
-            metadataComplete = ThreeState.UNDEFINED;
-
-            simpleElements.clear();
-            aggregatorElements.clear();
-            renderkitElements.clear();
+            resetTransformer();
         }
     }
 
+    @Override
+    protected void resetTransformer() {
+        super.resetTransformer();
+
+        hasProcessedConfigFiles = false;
+        metadataComplete = ThreeState.UNDEFINED;
+
+        simpleElements.clear();
+        aggregatorElements.clear();
+        renderkitElements.clear();
+    }
 }
