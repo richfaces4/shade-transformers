@@ -55,6 +55,6 @@
     <scm>
         <connection>scm:svn:http://anonsvn.jboss.org/repos/richfaces/root/build/resources/trunk/faces-shade-transformers</connection>
         <developerConnection>scm:svn:https://svn.jboss.org/repos/richfaces/root/build/resources/trunk/faces-shade-transformers</developerConnection>
-        <url>http://fisheye.jboss.org/browse/richfaces</url>
+        <url>http://fisheye.jboss.org/browse/richfaces/root/build/resources/trunk/faces-shade-transformers</url>
     </scm>
 </project>
