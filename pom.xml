@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.richfaces</groupId>
         <artifactId>richfaces-parent</artifactId>
-        <version>9</version>
+        <version>10-SNAPSHOT</version>
     </parent>
 
     <groupId>org.richfaces.build.resources</groupId>
@@ -15,14 +15,6 @@
 
     <build>
         <plugins>
-            <plugin>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>1.5</source>
-                    <target>1.5</target>
-                </configuration>
-            </plugin>
-            <!-- For the release this parent pom -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
@@ -53,8 +45,8 @@
     
     <!-- SCM and distribution management -->
     <scm>
-        <connection>scm:svn:http://anonsvn.jboss.org/repos/richfaces/root/build/resources/trunk/faces-shade-transformers</connection>
-        <developerConnection>scm:svn:https://svn.jboss.org/repos/richfaces/root/build/resources/trunk/faces-shade-transformers</developerConnection>
-        <url>http://fisheye.jboss.org/browse/richfaces/root/build/resources/trunk/faces-shade-transformers</url>
+        <connection>scm:svn:http://anonsvn.jboss.org/repos/richfaces/modules/build/resources/trunk/faces-shade-transformers</connection>
+        <developerConnection>scm:svn:https://svn.jboss.org/repos/richfaces/modules/build/resources/trunk/faces-shade-transformers</developerConnection>
+        <url>http://fisheye.jboss.org/browse/richfaces/root/build/resources/modules/faces-shade-transformers</url>
     </scm>
 </project>
