@@ -11,7 +11,9 @@
     <artifactId>faces-shade-transformers</artifactId>
     <version>3-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>JSF configuration files transformers for maven-shade-plugin</name>
+    <name>RichFaces Shade Transformers</name>
+    
+    <description>JSF configuration files transformers for maven-shade-plugin</description>
 
     <build>
         <plugins>
@@ -19,7 +21,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
                 <configuration>
-                    <tagBase>https://svn.jboss.org/repos/richfaces/root/build/resources/tags</tagBase>
+                    <tagBase>https://svn.jboss.org/repos/richfaces/modules/build/resources/tags</tagBase>
                 </configuration>
             </plugin>
         </plugins>
