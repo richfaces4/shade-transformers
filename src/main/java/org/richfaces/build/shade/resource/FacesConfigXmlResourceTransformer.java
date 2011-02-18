@@ -82,12 +82,13 @@ public class FacesConfigXmlResourceTransformer extends BaseFacesResourceTransfor
     private static final String CURRENT_VERSION = "2.0";
     private static final String VERSION = "version";
     private static final String FACES_CONFIG_FILE_NAME = "faces-config.xml";
+    private static final String DOT_FACES_CONFIG_FILE_NAME = ".faces-config.xml";
 
     private static final Set<String> AGGREGATOR_ELEMENTS_NAME_SET = new HashSet<String>(Arrays.asList(APPLICATION,
         FACTORY, LIFECYCLE));
 
     private static final Set<String> UNHANDLED_ELEMENTS_NAME_SET = new HashSet<String>(Arrays.asList(ORDERING, 
-        ABSOLUTE_ORDERING, NAME));
+        ABSOLUTE_ORDERING));
     
     private static final String RENDER_KIT_ID_EXPRESSION = MessageFormat.format("./{0}:{1}|./{1}", JAVAEE_PREFIX, 
         RENDER_KIT_ID);
@@ -103,6 +104,8 @@ public class FacesConfigXmlResourceTransformer extends BaseFacesResourceTransfor
     private Map<String, List<Element>> renderkitElements = new HashMap<String, List<Element>>();
     
     private List<Element> simpleElements = new ArrayList<Element>();
+    
+    private String configName = null;
     
     private boolean hasProcessedConfigFiles;
     
@@ -173,7 +176,19 @@ public class FacesConfigXmlResourceTransformer extends BaseFacesResourceTransfor
                     continue;
                 }
                 
-                if (AGGREGATOR_ELEMENTS_NAME_SET.contains(name)) {
+                if (NAME.equals(name)) {
+                    String childConfigName = child.getTextTrim();
+                    
+                    if (childConfigName.length() != 0) {
+                        if (configName != null && !configName.equals(childConfigName)) {
+                            throw new IllegalArgumentException(MessageFormat.format("Conflicting <name> elements detected in faces-config.xml files: ''{0}'' & ''{1}''", configName, childConfigName));
+                        }
+                        
+                        if (configName == null) {
+                            configName = childConfigName;
+                        }
+                     }
+                } else if (AGGREGATOR_ELEMENTS_NAME_SET.contains(name)) {
                     List<Element> elementsList = aggregatorElements.get(name);
                     if (elementsList == null) {
                         elementsList = new ArrayList<Element>();
@@ -209,7 +224,7 @@ public class FacesConfigXmlResourceTransformer extends BaseFacesResourceTransfor
             return false;
         } 
         
-        return name.equals(FACES_CONFIG_FILE_NAME);
+        return name.equals(FACES_CONFIG_FILE_NAME) || name.endsWith(DOT_FACES_CONFIG_FILE_NAME);
     }
 
     public boolean hasTransformedResource() {
@@ -237,6 +252,13 @@ public class FacesConfigXmlResourceTransformer extends BaseFacesResourceTransfor
             document.addContent(rootElement);
             
             List<Element> rootElementChildren = new ArrayList<Element>();
+
+            if (configName != null) {
+                Element nameElement = new Element(NAME, javaEENamespace);
+                nameElement.setText(configName);
+                rootElementChildren.add(nameElement);
+            }
+            
             rootElementChildren.addAll(simpleElements);
             
             for (Map.Entry<String, List<Element>> entry: aggregatorElements.entrySet()) {

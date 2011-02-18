@@ -92,8 +92,6 @@ public abstract class BaseFacesResourceTransformer implements ResourceTransforme
 
                 if (!Namespace.NO_NAMESPACE.equals(attribute.getNamespace())) {
                     attribute.setNamespace(namespacesFactory.getNamespace(attribute.getNamespace()));
-                } else {
-                    attribute.setNamespace(element.getNamespace());
                 }
             }
 
