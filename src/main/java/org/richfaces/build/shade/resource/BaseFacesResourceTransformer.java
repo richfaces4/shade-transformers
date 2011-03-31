@@ -21,9 +21,7 @@
  */
 package org.richfaces.build.shade.resource;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringReader;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -136,11 +134,25 @@ public abstract class BaseFacesResourceTransformer implements ResourceTransforme
             if (namespace.getPrefix().length() == 0) {
                 continue;
             }
-            
             rootElement.addNamespaceDeclaration(namespace);
         }
-        
+        outputFilesToSeparateDir(document,resourceName,prettyFormat);
         new XMLOutputter(prettyFormat).output(document, jos);
+    }
+
+    protected void outputFilesToSeparateDir(Document document, String resourceName, Format format) throws IOException {
+        String targetPath="target/taglibs/";
+        File path = new File(targetPath + META_INF_PATH);
+        path.mkdirs();
+        FileOutputStream outFiles = new FileOutputStream(targetPath+resourceName);
+        try {
+           new XMLOutputter(format).output(document, outFiles);
+        }
+        finally {
+          outFiles.close();
+        }
+
+
     }
 
     protected abstract void processDocument(String resource, Document document, List relocators) throws JDOMException;
@@ -148,7 +160,7 @@ public abstract class BaseFacesResourceTransformer implements ResourceTransforme
     protected void resetTransformer() {
         namespacesFactory = new NamespacesTracker();
     }
-    
+
     protected String getMetaInfResourceName(String resource) {
         if (!resource.startsWith(META_INF_PATH)) {
             return null;
