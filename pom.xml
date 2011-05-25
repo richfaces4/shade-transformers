@@ -47,8 +47,8 @@
     
     <!-- SCM and distribution management -->
     <scm>
-        <connection>scm:svn:http://anonsvn.jboss.org/repos/richfaces/modules/build/resources/trunk/faces-shade-transformers</connection>
-        <developerConnection>scm:svn:https://svn.jboss.org/repos/richfaces/modules/build/resources/trunk/faces-shade-transformers</developerConnection>
-        <url>http://fisheye.jboss.org/browse/richfaces/root/build/resources/modules/faces-shade-transformers</url>
+        <connection>scm:git:git://github.com/richfaces/shade-transformers.git</connection>
+        <developerConnection>scm:git:git@github.com:richfaces/shade-transformers.git</developerConnection>
+        <url>https://github.com/richfaces/shade-transformers</url>
     </scm>
 </project>
