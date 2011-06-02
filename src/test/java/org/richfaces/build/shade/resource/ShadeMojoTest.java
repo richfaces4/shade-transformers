@@ -36,26 +36,26 @@ import org.apache.maven.plugins.shade.resource.ResourceTransformer;
 import org.codehaus.plexus.PlexusTestCase;
 
 public class ShadeMojoTest extends PlexusTestCase {
-    
+
     private Shader shader;
-    
+
     public void setUp() throws Exception {
         super.setUp();
         shader = (Shader) lookup(Shader.ROLE);
     }
-    
+
     public void tearDown() throws Exception {
         super.tearDown();
         shader = null;
     }
-    
+
     private void doShade(File targetFile) throws Exception {
         List<Filter> filters = new ArrayList<Filter>();
 
         Set<File> set = new LinkedHashSet<File>();
 
         File basedir = new File(getBasedir());
-        
+
         set.add(new File(basedir, "src/test/jars/componentcontrol-ui-4.0.0-SNAPSHOT.jar"));
         set.add(new File(basedir, "src/test/jars/functions-ui-4.0.0-SNAPSHOT.jar"));
         set.add(new File(basedir, "src/test/jars/richfaces-ui-core-ui-4.0.0-SNAPSHOT.jar"));
@@ -73,6 +73,6 @@ public class ShadeMojoTest extends PlexusTestCase {
 
     public void testShading() throws Exception {
         doShade(new File("target/ui-shaded.jar"));
-        //TODO nick - check shaded .jar
+        // TODO nick - check shaded .jar
     }
 }
