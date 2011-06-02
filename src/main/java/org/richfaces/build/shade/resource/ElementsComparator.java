@@ -31,16 +31,16 @@ import org.jdom.xpath.XPath;
 
 /**
  * @author Nick Belaevski
- * 
+ *
  */
 class ElementsComparator implements Comparator<Element> {
 
     private String namespaceUri;
-    
+
     private List<String> orderedElementNames;
-    
+
     private Map<String, XPath> comparisonPaths;
-    
+
     public ElementsComparator(String namespaceUri, List<String> orderedElementNames, Map<String, XPath> comparisonPaths) {
         super();
         this.namespaceUri = namespaceUri;
@@ -51,7 +51,7 @@ class ElementsComparator implements Comparator<Element> {
     private String maskNullString(String s) {
         return s != null ? s : "";
     }
-    
+
     public int compare(Element o1, Element o2) {
         if (!namespaceUri.equals(o1.getNamespaceURI()) || !namespaceUri.equals(o2.getNamespaceURI())) {
             return 0;
@@ -67,7 +67,7 @@ class ElementsComparator implements Comparator<Element> {
                 try {
                     String firstEltValue = maskNullString(comparisonPath.valueOf(o1));
                     String secondEltValue = maskNullString(comparisonPath.valueOf(o2));
-                    
+
                     return firstEltValue.compareToIgnoreCase(secondEltValue);
                 } catch (JDOMException e) {
                     throw new RuntimeException(e.getMessage(), e);
