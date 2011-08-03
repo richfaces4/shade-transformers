@@ -5,12 +5,13 @@
     <parent>
         <groupId>org.richfaces</groupId>
         <artifactId>richfaces-parent</artifactId>
-        <version>11-SNAPSHOT</version>
+        <version>11</version>
+        <relativePath>../parent/pom.xml</relativePath>
     </parent>
 
     <groupId>org.richfaces.build.resources</groupId>
     <artifactId>faces-shade-transformers</artifactId>
-    <version>5-SNAPSHOT</version>
+    <version>5</version>
     <packaging>jar</packaging>
     <name>RichFaces Shade Transformers</name>
 
