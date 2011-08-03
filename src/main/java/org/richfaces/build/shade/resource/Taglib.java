@@ -21,15 +21,14 @@
  */
 package org.richfaces.build.shade.resource;
 
-
 /**
  * @author Nick Belaevski
- * 
+ *
  */
 public class Taglib {
 
     private String targetNamespace;
-    
+
     private String sourceNamespacesPattern;
 
     public String getTargetNamespace() {
@@ -47,12 +46,12 @@ public class Taglib {
     public void setSourceNamespacesPattern(String sourceNamespacesPattern) {
         this.sourceNamespacesPattern = sourceNamespacesPattern;
     }
-    
+
     public boolean matches(String namespace) {
         if (sourceNamespacesPattern == null || sourceNamespacesPattern.length() == 0) {
             return targetNamespace.equals(namespace);
         }
-        
+
         return namespace.matches(sourceNamespacesPattern);
     }
 }

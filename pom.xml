@@ -1,18 +1,20 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>org.richfaces</groupId>
         <artifactId>richfaces-parent</artifactId>
-        <version>10</version>
+        <version>11</version>
+        <relativePath>../parent/pom.xml</relativePath>
     </parent>
 
     <groupId>org.richfaces.build.resources</groupId>
     <artifactId>faces-shade-transformers</artifactId>
-    <version>4</version>
+    <version>5</version>
     <packaging>jar</packaging>
     <name>RichFaces Shade Transformers</name>
-    
+
     <description>JSF configuration files transformers for maven-shade-plugin</description>
 
     <build>
@@ -47,8 +49,8 @@
     
     <!-- SCM and distribution management -->
     <scm>
-        <connection>scm:svn:http://anonsvn.jboss.org/repos/richfaces/modules/build/resources/tags/richfaces-shade-transformers-4</connection>
-        <developerConnection>scm:svn:https://svn.jboss.org/repos/richfaces/modules/build/resources/tags/richfaces-shade-transformers-4</developerConnection>
-        <url>scm:svn:https://svn.jboss.org/repos/richfaces/modules/build/resources/tags/richfaces-shade-transformers-4</url>
+        <connection>scm:git:git://github.com/richfaces/shade-transformers.git</connection>
+        <developerConnection>scm:git:git@github.com:richfaces/shade-transformers.git</developerConnection>
+        <url>https://github.com/richfaces/shade-transformers</url>
     </scm>
 </project>

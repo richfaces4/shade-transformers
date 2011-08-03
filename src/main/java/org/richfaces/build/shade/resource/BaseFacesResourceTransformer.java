@@ -21,6 +21,8 @@
  */
 package org.richfaces.build.shade.resource;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
@@ -46,7 +48,7 @@ import org.xml.sax.SAXException;
 
 /**
  * @author Nick Belaevski
- * 
+ *
  */
 public abstract class BaseFacesResourceTransformer implements ResourceTransformer {
 
@@ -57,11 +59,11 @@ public abstract class BaseFacesResourceTransformer implements ResourceTransforme
     protected static final String JAVAEE_URI = "http://java.sun.com/xml/ns/javaee";
 
     private static final String XSI_URI = "http://www.w3.org/2001/XMLSchema-instance";
-    
+
     private static final String XSI_PREFIX = "xsi";
-    
+
     protected NamespacesTracker namespacesFactory = new NamespacesTracker();
-    
+
     protected static XPath createXPath(String path) throws JDOMException {
         XPath xPath = XPath.newInstance(path);
         xPath.addNamespace(Namespace.getNamespace(JAVAEE_PREFIX, JAVAEE_URI));
@@ -73,14 +75,14 @@ public abstract class BaseFacesResourceTransformer implements ResourceTransforme
     protected Namespace getJavaEENamespace() {
         return namespacesFactory.getNamespace(JAVAEE_URI, null);
     }
-    
+
     protected void addSchemaLocation(Element element, String schemaLocation) {
         if (schemaLocation != null && schemaLocation.length() != 0) {
             Namespace xsiNamespace = namespacesFactory.getNamespace(XSI_URI, XSI_PREFIX);
             element.setAttribute("schemaLocation", JAVAEE_URI + " " + schemaLocation, xsiNamespace);
         }
     }
-    
+
     private void updateNamespaceRecursively(Object object) {
         if (object instanceof Element) {
             Element element = (Element) object;
@@ -106,10 +108,10 @@ public abstract class BaseFacesResourceTransformer implements ResourceTransforme
         if (namespaceURI == null || namespaceURI.trim().length() == 0) {
             return true;
         }
-        
+
         return JAVAEE_URI.equals(namespaceURI);
     }
-    
+
     protected Element cloneAndImportElement(Element element) {
         Element clonedElement = (Element) element.clone();
         updateNamespaceRecursively(clonedElement);
@@ -121,10 +123,10 @@ public abstract class BaseFacesResourceTransformer implements ResourceTransforme
         for (Element element : elements) {
             result.add(cloneAndImportElement(element));
         }
-        
+
         return result;
     }
-    
+
     protected void appendToStream(String resourceName, Document document, JarOutputStream jos) throws IOException {
         jos.putNextEntry(new JarEntry(resourceName));
         Format prettyFormat = Format.getPrettyFormat();
@@ -136,11 +138,23 @@ public abstract class BaseFacesResourceTransformer implements ResourceTransforme
             if (namespace.getPrefix().length() == 0) {
                 continue;
             }
-            
             rootElement.addNamespaceDeclaration(namespace);
         }
-        
+        outputFilesToSeparateDir(document, resourceName, prettyFormat);
         new XMLOutputter(prettyFormat).output(document, jos);
+    }
+
+    protected void outputFilesToSeparateDir(Document document, String resourceName, Format format) throws IOException {
+        String targetPath = "target/taglibs/";
+        File path = new File(targetPath + META_INF_PATH);
+        path.mkdirs();
+        FileOutputStream outFiles = new FileOutputStream(targetPath + resourceName);
+        try {
+            new XMLOutputter(format).output(document, outFiles);
+        } finally {
+            outFiles.close();
+        }
+
     }
 
     protected abstract void processDocument(String resource, Document document, List relocators) throws JDOMException;
@@ -148,36 +162,36 @@ public abstract class BaseFacesResourceTransformer implements ResourceTransforme
     protected void resetTransformer() {
         namespacesFactory = new NamespacesTracker();
     }
-    
+
     protected String getMetaInfResourceName(String resource) {
         if (!resource.startsWith(META_INF_PATH)) {
             return null;
         }
-        
+
         String subPath = resource.substring(META_INF_PATH.length());
         if (subPath.contains("/")) {
             return null;
         }
-        
+
         return subPath;
     }
-    
+
     @SuppressWarnings("unchecked")
     protected <T> List<T> checkedList(List<?> list, Class<T> clazz) {
-        for (Object o: list) {
+        for (Object o : list) {
             if (!clazz.isInstance(o)) {
                 throw new ClassCastException(o.toString());
             }
         }
-        
+
         return (List<T>) list;
     }
-    
+
     public void processResource(String resource, InputStream is, List relocators) throws IOException {
         try {
             SAXBuilder builder = new SAXBuilder(false);
             builder.setExpandEntities(false);
-            //TODO nick - namespace aware?
+            // TODO nick - namespace aware?
             builder.setEntityResolver(new EntityResolver() {
 
                 public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {

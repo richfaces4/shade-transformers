@@ -33,50 +33,50 @@ import org.jdom.Namespace;
 
 /**
  * @author Nick Belaevski
- * 
+ *
  */
 final class NamespacesTracker {
 
-    //see MessageFormat class for format of this string
+    // see MessageFormat class for format of this string
     private static final String GENERATED_NS_PREFIX_FORMAT = "x{0}";
-    
+
     private Set<String> usedPrefixes = new HashSet<String>();
-    
+
     private Map<String, Namespace> namespaces = new HashMap<String, Namespace>();
-    
+
     private int prefixGeneratorCounter = 0;
-    
+
     private String maskEmptyString(String s) {
         if (s == null || s.trim().length() == 0) {
             return "";
         }
-        
+
         return s;
     }
-    
+
     private Namespace createNamespace(String uri, String prefix) {
         String maskedPrefix = maskEmptyString(prefix);
 
         while (usedPrefixes.contains(maskedPrefix)) {
-            //generate next prefix using counter & format string
+            // generate next prefix using counter & format string
             maskedPrefix = MessageFormat.format(GENERATED_NS_PREFIX_FORMAT, prefixGeneratorCounter++);
         }
-         
+
         return Namespace.getNamespace(maskedPrefix, uri);
     }
 
     public Namespace getNamespace(String nsUri, String nsPrefix) {
         String maskedUri = maskEmptyString(nsUri);
-        
+
         Namespace namespace = namespaces.get(maskedUri);
-        
+
         if (namespace == null) {
             namespace = createNamespace(maskedUri, nsPrefix);
 
             usedPrefixes.add(namespace.getPrefix());
             namespaces.put(maskedUri, namespace);
         }
-        
+
         return namespace;
     }
 

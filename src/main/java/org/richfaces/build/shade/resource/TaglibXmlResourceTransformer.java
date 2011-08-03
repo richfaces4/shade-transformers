@@ -42,7 +42,7 @@ import org.jdom.xpath.XPath;
 
 /**
  * @author Nick Belaevski
- * 
+ *
  */
 public class TaglibXmlResourceTransformer extends BaseFacesResourceTransformer {
 
@@ -58,8 +58,8 @@ public class TaglibXmlResourceTransformer extends BaseFacesResourceTransformer {
 
     private static final String TAGLIB_XML_FILE_EXTENSION = ".taglib.xml";
 
-    private static final String NAMESPACE_EXPRESSION = MessageFormat.format(
-        "/{0}:{1}/{0}:{2}|/{1}/{2}", JAVAEE_PREFIX, FACELET_TAGLIB, NAMESPACE);
+    private static final String NAMESPACE_EXPRESSION = MessageFormat.format("/{0}:{1}/{0}:{2}|/{1}/{2}", JAVAEE_PREFIX,
+        FACELET_TAGLIB, NAMESPACE);
 
     private Map<String, List<Document>> tagLibraries = new HashMap<String, List<Document>>();
 
@@ -68,8 +68,8 @@ public class TaglibXmlResourceTransformer extends BaseFacesResourceTransformer {
     private Taglib[] taglibs = new Taglib[0];
 
     private Comparator<Element> createElementsComparator() throws JDOMException {
-        List<String> elements = Arrays.asList("description", "display-name", "icon", 
-            "library-class", NAMESPACE, "composite-library-name", TAG, FUNCTION, "taglib-extension");
+        List<String> elements = Arrays.asList("description", "display-name", "icon", "library-class", NAMESPACE,
+            "composite-library-name", TAG, FUNCTION, "taglib-extension");
 
         Map<String, XPath> elementNameExpressions = new HashMap<String, XPath>();
         String tagPathExpr = MessageFormat.format("./{0}:{1}|./{1}", JAVAEE_PREFIX, TAG_NAME);
@@ -158,7 +158,7 @@ public class TaglibXmlResourceTransformer extends BaseFacesResourceTransformer {
                         checkRootElement(sourceRootElement);
 
                         List<Element> tagsContent = checkedList(sourceRootElement.getContent(filter), Element.class);
-                        for (Element tagElement: tagsContent) {
+                        for (Element tagElement : tagsContent) {
                             Element clonedElement = cloneAndImportElement(tagElement);
                             elements.add(clonedElement);
                         }
