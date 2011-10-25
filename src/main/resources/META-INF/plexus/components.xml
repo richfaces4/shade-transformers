@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<component-set>
+  <components>
+    <component>
+      <role>org.apache.maven.plugin.assembly.filter.ContainerDescriptorHandler</role>
+      <role-hint>taglib-xml</role-hint>
+      <implementation>org.richfaces.build.shade.resource.TaglibXmlResourceTransformer</implementation>
+      <instantiation-strategy>per-lookup</instantiation-strategy>
+    </component>
+    <component>
+      <role>org.apache.maven.plugin.assembly.filter.ContainerDescriptorHandler</role>
+      <role-hint>faces-xml</role-hint>
+      <implementation>org.richfaces.build.shade.resource.FacesConfigXmlResourceTransformer</implementation>
+      <instantiation-strategy>per-lookup</instantiation-strategy>
+    </component>
+  </components>
+</component-set>
