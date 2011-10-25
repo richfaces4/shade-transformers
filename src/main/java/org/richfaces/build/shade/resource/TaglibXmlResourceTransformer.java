@@ -21,7 +21,6 @@
  */
 package org.richfaces.build.shade.resource;
 
-import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,8 +29,10 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.jar.JarOutputStream;
 
+import org.codehaus.plexus.archiver.Archiver;
+import org.codehaus.plexus.archiver.ArchiverException;
+import org.codehaus.plexus.components.io.fileselectors.FileInfo;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
@@ -42,175 +43,262 @@ import org.jdom.xpath.XPath;
 
 /**
  * @author Nick Belaevski
- *
  */
-public class TaglibXmlResourceTransformer extends BaseFacesResourceTransformer {
+public class TaglibXmlResourceTransformer
+    extends BaseFacesResourceTransformer
+{
 
     private static final String ID = "id";
+
     private static final String CURRENT_VERSION = "2.0";
+
     private static final String VERSION = "version";
+
     private static final String NAMESPACE = "namespace";
+
     private static final String FUNCTION = "function";
+
     private static final String TAG = "tag";
+
     private static final String FUNCTION_NAME = "function-name";
+
     private static final String TAG_NAME = "tag-name";
+
     private static final String FACELET_TAGLIB = "facelet-taglib";
 
     private static final String TAGLIB_XML_FILE_EXTENSION = ".taglib.xml";
 
-    private static final String NAMESPACE_EXPRESSION = MessageFormat.format("/{0}:{1}/{0}:{2}|/{1}/{2}", JAVAEE_PREFIX,
-        FACELET_TAGLIB, NAMESPACE);
+    private static final String NAMESPACE_EXPRESSION = MessageFormat.format( "/{0}:{1}/{0}:{2}|/{1}/{2}",
+                                                                             JAVAEE_PREFIX,
+                                                                             FACELET_TAGLIB,
+                                                                             NAMESPACE );
 
-    private Map<String, List<Document>> tagLibraries = new HashMap<String, List<Document>>();
+    private final Map<String, List<Document>> tagLibraries = new HashMap<String, List<Document>>();
 
-    private Map<String, Document> passThroughLibraries = new HashMap<String, Document>();
+    private final Map<String, Document> passThroughLibraries = new HashMap<String, Document>();
 
     private Taglib[] taglibs = new Taglib[0];
 
-    private Comparator<Element> createElementsComparator() throws JDOMException {
-        List<String> elements = Arrays.asList("description", "display-name", "icon", "library-class", NAMESPACE,
-            "composite-library-name", TAG, FUNCTION, "taglib-extension");
+    private Comparator<Element> createElementsComparator()
+        throws JDOMException
+    {
+        List<String> elements =
+            Arrays.asList( "description",
+                           "display-name",
+                           "icon",
+                           "library-class",
+                           NAMESPACE,
+                           "composite-library-name",
+                           TAG,
+                           FUNCTION,
+                           "taglib-extension" );
 
         Map<String, XPath> elementNameExpressions = new HashMap<String, XPath>();
-        String tagPathExpr = MessageFormat.format("./{0}:{1}|./{1}", JAVAEE_PREFIX, TAG_NAME);
-        elementNameExpressions.put(TAG, createXPath(tagPathExpr));
+        String tagPathExpr = MessageFormat.format( "./{0}:{1}|./{1}", JAVAEE_PREFIX, TAG_NAME );
+        elementNameExpressions.put( TAG, createXPath( tagPathExpr ) );
 
-        String fnPathExpr = MessageFormat.format("./{0}:{1}|./{1}", JAVAEE_PREFIX, FUNCTION_NAME);
-        elementNameExpressions.put(FUNCTION, createXPath(fnPathExpr));
+        String fnPathExpr = MessageFormat.format( "./{0}:{1}|./{1}", JAVAEE_PREFIX, FUNCTION_NAME );
+        elementNameExpressions.put( FUNCTION, createXPath( fnPathExpr ) );
 
-        return new ElementsComparator(JAVAEE_URI, elements, elementNameExpressions);
+        return new ElementsComparator( JAVAEE_URI, elements, elementNameExpressions );
     }
 
-    private String getShortName(String namespaceUri) {
-        int idx = namespaceUri.lastIndexOf('/');
-        if (idx < 0) {
+    private String getShortName( final String namespaceUri )
+    {
+        int idx = namespaceUri.lastIndexOf( '/' );
+        if ( idx < 0 )
+        {
             return namespaceUri;
-        } else {
-            return namespaceUri.substring(idx + 1);
+        }
+        else
+        {
+            return namespaceUri.substring( idx + 1 );
         }
     }
 
-    private String getFileName(String shortName) {
+    private String getFileName( final String shortName )
+    {
         return META_INF_PATH + shortName + TAGLIB_XML_FILE_EXTENSION;
     }
 
-    public boolean canTransformResource(String resource) {
-        String name = getMetaInfResourceName(resource);
-        return name != null && name.endsWith(TAGLIB_XML_FILE_EXTENSION);
-    }
-
-    private void checkRootElement(Element element) {
-        if (!FACELET_TAGLIB.equals(element.getName())) {
-            throw new IllegalArgumentException("Root element name: " + element.getName());
+    private void checkRootElement( final Element element )
+    {
+        if ( !FACELET_TAGLIB.equals( element.getName() ) )
+        {
+            throw new IllegalArgumentException( "Root element name: " + element.getName() );
         }
 
-        if (!isJavaEEOrDefaultNamespace(element)) {
-            throw new IllegalArgumentException("Root element namespace: " + element.getNamespaceURI());
+        if ( !isJavaEEOrDefaultNamespace( element ) )
+        {
+            throw new IllegalArgumentException( "Root element namespace: " + element.getNamespaceURI() );
         }
     }
 
-    public boolean hasTransformedResource() {
+    public boolean hasTransformedResource()
+    {
         return !tagLibraries.isEmpty() || !passThroughLibraries.isEmpty();
     }
 
-    public void modifyOutputStream(JarOutputStream os) throws IOException {
-        try {
-            for (Map.Entry<String, Document> entry : passThroughLibraries.entrySet()) {
+    @Override
+    protected void writeMergedConfigFiles( final Archiver archiver )
+        throws ArchiverException
+    {
+        try
+        {
+            for ( Map.Entry<String, Document> entry : passThroughLibraries.entrySet() )
+            {
                 String resourceName = entry.getKey();
                 Document document = entry.getValue();
 
-                appendToStream(resourceName, document, os);
+                addToArchive( resourceName, document, archiver );
             }
 
-            if (!tagLibraries.isEmpty()) {
+            if ( !tagLibraries.isEmpty() )
+            {
                 Comparator<Element> elementsComparator;
-                try {
+                try
+                {
                     elementsComparator = createElementsComparator();
-                } catch (JDOMException e) {
-                    throw new RuntimeException(e.getMessage(), e);
+                }
+                catch ( JDOMException e )
+                {
+                    throw new RuntimeException( e.getMessage(), e );
                 }
 
                 Namespace javaEENamespace = getJavaEENamespace();
-                Filter filter = new ElementFilter().and(new ElementFilter(NAMESPACE, javaEENamespace).negate());
+                Filter filter = new ElementFilter().and( new ElementFilter( NAMESPACE, javaEENamespace ).negate() );
 
-                for (Map.Entry<String, List<Document>> entry : tagLibraries.entrySet()) {
+                for ( Map.Entry<String, List<Document>> entry : tagLibraries.entrySet() )
+                {
                     String namespaceUri = entry.getKey();
-                    String shortName = getShortName(namespaceUri);
+                    String shortName = getShortName( namespaceUri );
                     List<Document> sourceDocuments = entry.getValue();
 
                     Document document = new org.jdom.Document();
 
-                    Element rootElement = new Element(FACELET_TAGLIB, javaEENamespace);
-                    rootElement.setAttribute(VERSION, CURRENT_VERSION);
-                    addSchemaLocation(rootElement, "http://java.sun.com/xml/ns/javaee/web-facelettaglibrary_2_0.xsd");
-                    rootElement.setAttribute(ID, shortName);
+                    Element rootElement = new Element( FACELET_TAGLIB, javaEENamespace );
+                    rootElement.setAttribute( VERSION, CURRENT_VERSION );
+                    addSchemaLocation( rootElement, "http://java.sun.com/xml/ns/javaee/web-facelettaglibrary_2_0.xsd" );
+                    rootElement.setAttribute( ID, shortName );
 
-                    document.addContent(rootElement);
+                    document.addContent( rootElement );
 
                     List<Element> elements = new ArrayList<Element>();
 
-                    Element nsElement = new Element(NAMESPACE, javaEENamespace);
-                    nsElement.setText(namespaceUri);
-                    elements.add(nsElement);
+                    Element nsElement = new Element( NAMESPACE, javaEENamespace );
+                    nsElement.setText( namespaceUri );
+                    elements.add( nsElement );
 
-                    for (Document sourceDocument : sourceDocuments) {
+                    for ( Document sourceDocument : sourceDocuments )
+                    {
                         Element sourceRootElement = sourceDocument.getRootElement();
-                        checkRootElement(sourceRootElement);
+                        checkRootElement( sourceRootElement );
 
-                        List<Element> tagsContent = checkedList(sourceRootElement.getContent(filter), Element.class);
-                        for (Element tagElement : tagsContent) {
-                            Element clonedElement = cloneAndImportElement(tagElement);
-                            elements.add(clonedElement);
+                        List<Element> tagsContent = checkedList( sourceRootElement.getContent( filter ), Element.class );
+                        for ( Element tagElement : tagsContent )
+                        {
+                            Element clonedElement = cloneAndImportElement( tagElement );
+                            elements.add( clonedElement );
                         }
                     }
 
-                    Collections.sort(elements, elementsComparator);
-                    rootElement.addContent(elements);
+                    Collections.sort( elements, elementsComparator );
+                    rootElement.addContent( elements );
 
-                    String fileName = getFileName(shortName);
-                    appendToStream(fileName, document, os);
+                    String fileName = getFileName( shortName );
+                    addToArchive( fileName, document, archiver );
                 }
             }
-        } finally {
+        }
+        finally
+        {
             resetTransformer();
         }
     }
 
     @Override
-    protected void resetTransformer() {
+    protected void resetTransformer()
+    {
         super.resetTransformer();
         passThroughLibraries.clear();
         tagLibraries.clear();
     }
 
     @Override
-    protected void processDocument(String resource, Document document, List relocators) throws JDOMException {
-        String namespaceUri = (String) createXPath(NAMESPACE_EXPRESSION).valueOf(document);
-        if (namespaceUri == null || namespaceUri.length() == 0) {
-            passThroughLibraries.put(resource, document);
-        } else {
-            for (Taglib taglib : taglibs) {
-                if (taglib.matches(namespaceUri)) {
+    protected void processDocument( final String resource, final Document document )
+        throws JDOMException
+    {
+        String namespaceUri = createXPath( NAMESPACE_EXPRESSION ).valueOf( document );
+        if ( namespaceUri == null || namespaceUri.length() == 0 )
+        {
+            passThroughLibraries.put( resource, document );
+        }
+        else
+        {
+            for ( Taglib taglib : taglibs )
+            {
+                if ( taglib.matches( namespaceUri ) )
+                {
                     namespaceUri = taglib.getTargetNamespace();
                     break;
                 }
             }
 
-            List<Document> documents = tagLibraries.get(namespaceUri);
-            if (documents == null) {
+            List<Document> documents = tagLibraries.get( namespaceUri );
+            if ( documents == null )
+            {
                 documents = new ArrayList<Document>();
-                tagLibraries.put(namespaceUri, documents);
+                tagLibraries.put( namespaceUri, documents );
             }
 
-            documents.add(document);
+            documents.add( document );
         }
     }
 
-    public Taglib[] getTaglibs() {
+    public Taglib[] getTaglibs()
+    {
         return taglibs;
     }
 
-    public void setTaglibs(Taglib[] taglibs) {
+    public void setTaglibs( final Taglib[] taglibs )
+    {
         this.taglibs = taglibs;
+    }
+
+    @SuppressWarnings( "rawtypes" )
+    @Override
+    public List getVirtualFiles()
+    {
+        List<String> result = new ArrayList<String>();
+
+        for ( Map.Entry<String, Document> entry : passThroughLibraries.entrySet() )
+        {
+            String resourceName = entry.getKey();
+            result.add( resourceName );
+        }
+
+        if ( !tagLibraries.isEmpty() )
+        {
+            for ( Map.Entry<String, List<Document>> entry : tagLibraries.entrySet() )
+            {
+                String namespaceUri = entry.getKey();
+                String shortName = getShortName( namespaceUri );
+                result.add( getFileName( shortName ) );
+            }
+        }
+
+        return result;
+    }
+
+    @Override
+    protected boolean isHandled( final FileInfo fileInfo )
+    {
+        if ( !fileInfo.isFile() )
+        {
+            return false;
+        }
+
+        String name = getMetaInfResourceName( fileInfo.getName() );
+        return name != null && name.endsWith( TAGLIB_XML_FILE_EXTENSION );
     }
 }
