@@ -54,9 +54,7 @@ import org.xml.sax.SAXException;
 /**
  * @author Nick Belaevski
  */
-public abstract class BaseFacesResourceTransformer
-    implements ContainerDescriptorHandler
-{
+public abstract class BaseFacesResourceTransformer implements ContainerDescriptorHandler {
 
     protected static final String META_INF_PATH = "META-INF/";
 
@@ -74,269 +72,208 @@ public abstract class BaseFacesResourceTransformer
 
     private boolean hasProcessedConfigFiles;
 
-    protected static XPath createXPath( final String path )
-        throws JDOMException
-    {
-        XPath xPath = XPath.newInstance( path );
-        xPath.addNamespace( Namespace.getNamespace( JAVAEE_PREFIX, JAVAEE_URI ) );
-        xPath.addNamespace( Namespace.getNamespace( XSI_PREFIX, XSI_URI ) );
+    protected static XPath createXPath(final String path) throws JDOMException {
+        XPath xPath = XPath.newInstance(path);
+        xPath.addNamespace(Namespace.getNamespace(JAVAEE_PREFIX, JAVAEE_URI));
+        xPath.addNamespace(Namespace.getNamespace(XSI_PREFIX, XSI_URI));
 
         return xPath;
     }
 
-    protected Namespace getJavaEENamespace()
-    {
-        return namespacesFactory.getNamespace( JAVAEE_URI, null );
+    protected Namespace getJavaEENamespace() {
+        return namespacesFactory.getNamespace(JAVAEE_URI, null);
     }
 
-    protected void addSchemaLocation( final Element element, final String schemaLocation )
-    {
-        if ( schemaLocation != null && schemaLocation.length() != 0 )
-        {
-            Namespace xsiNamespace = namespacesFactory.getNamespace( XSI_URI, XSI_PREFIX );
-            element.setAttribute( "schemaLocation", JAVAEE_URI + " " + schemaLocation, xsiNamespace );
+    protected void addSchemaLocation(final Element element, final String schemaLocation) {
+        if (schemaLocation != null && schemaLocation.length() != 0) {
+            Namespace xsiNamespace = namespacesFactory.getNamespace(XSI_URI, XSI_PREFIX);
+            element.setAttribute("schemaLocation", JAVAEE_URI + " " + schemaLocation, xsiNamespace);
         }
     }
 
-    private void updateNamespaceRecursively( final Object object )
-    {
-        if ( object instanceof Element )
-        {
+    private void updateNamespaceRecursively(final Object object) {
+        if (object instanceof Element) {
             Element element = (Element) object;
 
-            element.setNamespace( namespacesFactory.getNamespace( element.getNamespace() ) );
+            element.setNamespace(namespacesFactory.getNamespace(element.getNamespace()));
 
-            for ( Object attributeObject : element.getAttributes() )
-            {
+            for (Object attributeObject : element.getAttributes()) {
                 Attribute attribute = (Attribute) attributeObject;
 
-                if ( !Namespace.NO_NAMESPACE.equals( attribute.getNamespace() ) )
-                {
-                    attribute.setNamespace( namespacesFactory.getNamespace( attribute.getNamespace() ) );
+                if (!Namespace.NO_NAMESPACE.equals(attribute.getNamespace())) {
+                    attribute.setNamespace(namespacesFactory.getNamespace(attribute.getNamespace()));
                 }
             }
 
-            for ( Object child : element.getChildren() )
-            {
-                updateNamespaceRecursively( child );
+            for (Object child : element.getChildren()) {
+                updateNamespaceRecursively(child);
             }
         }
     }
 
-    protected boolean isJavaEEOrDefaultNamespace( final Element element )
-    {
+    protected boolean isJavaEEOrDefaultNamespace(final Element element) {
         String namespaceURI = element.getNamespaceURI();
-        if ( namespaceURI == null || namespaceURI.trim().length() == 0 )
-        {
+        if (namespaceURI == null || namespaceURI.trim().length() == 0) {
             return true;
         }
 
-        return JAVAEE_URI.equals( namespaceURI );
+        return JAVAEE_URI.equals(namespaceURI);
     }
 
-    protected Element cloneAndImportElement( final Element element )
-    {
+    protected Element cloneAndImportElement(final Element element) {
         Element clonedElement = (Element) element.clone();
-        updateNamespaceRecursively( clonedElement );
+        updateNamespaceRecursively(clonedElement);
         return clonedElement;
     }
 
-    protected List<Element> cloneAndImportElements( final List<Element> elements )
-    {
-        List<Element> result = new ArrayList<Element>( elements.size() );
-        for ( Element element : elements )
-        {
-            result.add( cloneAndImportElement( element ) );
+    protected List<Element> cloneAndImportElements(final List<Element> elements) {
+        List<Element> result = new ArrayList<Element>(elements.size());
+        for (Element element : elements) {
+            result.add(cloneAndImportElement(element));
         }
 
         return result;
     }
 
-    protected void addToArchive( final String path, final Document document, final Archiver archiver )
-        throws ArchiverException
-    {
+    protected void addToArchive(final String path, final Document document, final Archiver archiver) throws ArchiverException {
         File f;
-        try
-        {
-            f = File.createTempFile( "richfaces-assembly-transform.", ".tmp" );
+        try {
+            f = File.createTempFile("richfaces-assembly-transform.", ".tmp");
             f.deleteOnExit();
 
-            final Writer fileWriter = WriterFactory.newXmlWriter( f );
+            final Writer fileWriter = WriterFactory.newXmlWriter(f);
 
             Format prettyFormat = Format.getPrettyFormat();
-            prettyFormat.setIndent( "    " );
+            prettyFormat.setIndent("    ");
 
             Element rootElement = document.getRootElement();
             Collection<Namespace> namespaces = namespacesFactory.getNamespaces();
-            for ( Namespace namespace : namespaces )
-            {
-                if ( namespace.getPrefix().length() == 0 )
-                {
+            for (Namespace namespace : namespaces) {
+                if (namespace.getPrefix().length() == 0) {
                     continue;
                 }
-                rootElement.addNamespaceDeclaration( namespace );
+                rootElement.addNamespaceDeclaration(namespace);
             }
-            outputFilesToSeparateDir( document, path, prettyFormat );
-            new XMLOutputter( prettyFormat ).output( document, fileWriter );
-        }
-        catch ( IOException e )
-        {
-            throw new ArchiverException( "Error adding '" + path + "' to archive. Reason: " + e.getMessage(), e );
+            outputFilesToSeparateDir(document, path, prettyFormat);
+            new XMLOutputter(prettyFormat).output(document, fileWriter);
+        } catch (IOException e) {
+            throw new ArchiverException("Error adding '" + path + "' to archive. Reason: " + e.getMessage(), e);
         }
 
         excludeOverride = true;
-        archiver.addFile( f, path );
+        archiver.addFile(f, path);
         excludeOverride = false;
     }
 
-    protected void outputFilesToSeparateDir( final Document document, final String resourceName, final Format format )
-        throws IOException
-    {
+    protected void outputFilesToSeparateDir(final Document document, final String resourceName, final Format format)
+            throws IOException {
         String targetPath = "target/taglibs/";
-        File path = new File( targetPath + META_INF_PATH );
+        File path = new File(targetPath + META_INF_PATH);
         path.mkdirs();
-        FileOutputStream outFiles = new FileOutputStream( targetPath + resourceName );
-        try
-        {
-            new XMLOutputter( format ).output( document, outFiles );
-        }
-        finally
-        {
+        FileOutputStream outFiles = new FileOutputStream(targetPath + resourceName);
+        try {
+            new XMLOutputter(format).output(document, outFiles);
+        } finally {
             outFiles.close();
         }
 
     }
 
-    protected abstract void processDocument( String resource, Document document )
-        throws JDOMException;
+    protected abstract void processDocument(String resource, Document document) throws JDOMException;
 
-    protected void resetTransformer()
-    {
+    protected void resetTransformer() {
         namespacesFactory = new NamespacesTracker();
         hasProcessedConfigFiles = false;
     }
 
-    protected String getMetaInfResourceName( final String resource )
-    {
-        if ( !resource.startsWith( META_INF_PATH ) )
-        {
+    protected String getMetaInfResourceName(final String resource) {
+        if (!resource.startsWith(META_INF_PATH)) {
             return null;
         }
 
-        String subPath = resource.substring( META_INF_PATH.length() );
-        if ( subPath.contains( "/" ) )
-        {
+        String subPath = resource.substring(META_INF_PATH.length());
+        if (subPath.contains("/")) {
             return null;
         }
 
         return subPath;
     }
 
-    @SuppressWarnings( "unchecked" )
-    protected <T> List<T> checkedList( final List<?> list, final Class<T> clazz )
-    {
-        for ( Object o : list )
-        {
-            if ( !clazz.isInstance( o ) )
-            {
-                throw new ClassCastException( o.toString() );
+    @SuppressWarnings("unchecked")
+    protected <T> List<T> checkedList(final List<?> list, final Class<T> clazz) {
+        for (Object o : list) {
+            if (!clazz.isInstance(o)) {
+                throw new ClassCastException(o.toString());
             }
         }
 
         return (List<T>) list;
     }
 
-    protected abstract boolean isHandled( FileInfo fileInfo );
+    protected abstract boolean isHandled(FileInfo fileInfo);
 
     @Override
-    public final boolean isSelected( final FileInfo fileInfo )
-        throws IOException
-    {
-        if ( isHandled( fileInfo ) )
-        {
-            if ( excludeOverride )
-            {
+    public final boolean isSelected(final FileInfo fileInfo) throws IOException {
+        if (isHandled(fileInfo)) {
+            if (excludeOverride) {
                 return true;
             }
 
             hasProcessedConfigFiles = true;
             InputStream is = fileInfo.getContents();
-            try
-            {
-                SAXBuilder builder = new SAXBuilder( false );
-                builder.setExpandEntities( false );
+            try {
+                SAXBuilder builder = new SAXBuilder(false);
+                builder.setExpandEntities(false);
                 // TODO nick - namespace aware?
-                builder.setEntityResolver( new EntityResolver()
-                {
+                builder.setEntityResolver(new EntityResolver() {
 
                     @Override
-                    public InputSource resolveEntity( final String publicId, final String systemId )
-                        throws SAXException, IOException
-                    {
-                        return new InputSource( new StringReader( "" ) );
+                    public InputSource resolveEntity(final String publicId, final String systemId) throws SAXException,
+                            IOException {
+                        return new InputSource(new StringReader(""));
                     }
-                } );
-                Document document = builder.build( is );
-                processDocument( fileInfo.getName(), document );
-            }
-            catch ( JDOMException e )
-            {
-                throw new RuntimeException( e.getMessage(), e );
-            }
-            finally
-            {
-                try
-                {
+                });
+                Document document = builder.build(is);
+                processDocument(fileInfo.getName(), document);
+            } catch (JDOMException e) {
+                throw new RuntimeException(e.getMessage(), e);
+            } finally {
+                try {
                     is.close();
-                }
-                catch ( IOException e )
-                {
+                } catch (IOException e) {
                     // TODO: handle exception
                 }
             }
 
             return false;
-        }
-        else
-        {
+        } else {
             return true;
         }
     }
 
     @Override
-    public final void finalizeArchiveCreation( final Archiver archiver )
-        throws ArchiverException
-    {
-        for ( final ResourceIterator it = archiver.getResources(); it.hasNext(); )
-        {
+    public final void finalizeArchiveCreation(final Archiver archiver) throws ArchiverException {
+        for (final ResourceIterator it = archiver.getResources(); it.hasNext();) {
             it.next();
         }
 
-        if ( hasProcessedConfigFiles )
-        {
-            try
-            {
-                writeMergedConfigFiles( archiver );
-            }
-            finally
-            {
+        if (hasProcessedConfigFiles) {
+            try {
+                writeMergedConfigFiles(archiver);
+            } finally {
                 resetTransformer();
             }
         }
     }
 
-    protected abstract void writeMergedConfigFiles( Archiver archiver )
-        throws ArchiverException;
+    protected abstract void writeMergedConfigFiles(Archiver archiver) throws ArchiverException;
 
     @Override
-    public final void finalizeArchiveExtraction( final UnArchiver unarchiver )
-        throws ArchiverException
-    {
+    public final void finalizeArchiveExtraction(final UnArchiver unarchiver) throws ArchiverException {
         // NOP.
     }
 
-    protected boolean hasProcessedConfigFiles()
-    {
+    protected boolean hasProcessedConfigFiles() {
         return hasProcessedConfigFiles;
     }
 

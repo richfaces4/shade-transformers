@@ -23,7 +23,7 @@ package org.richfaces.build.shade.resource;
 
 /**
  * @author Nick Belaevski
- *
+ * 
  */
 public class Taglib {
 
