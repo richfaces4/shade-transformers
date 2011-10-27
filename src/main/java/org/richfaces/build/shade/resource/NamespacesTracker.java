@@ -33,7 +33,7 @@ import org.jdom.Namespace;
 
 /**
  * @author Nick Belaevski
- *
+ * 
  */
 final class NamespacesTracker {
 

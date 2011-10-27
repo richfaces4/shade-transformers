@@ -31,7 +31,7 @@ import org.jdom.xpath.XPath;
 
 /**
  * @author Nick Belaevski
- *
+ * 
  */
 class ElementsComparator implements Comparator<Element> {
 
