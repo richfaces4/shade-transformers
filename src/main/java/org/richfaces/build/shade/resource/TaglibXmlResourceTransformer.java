@@ -27,8 +27,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.codehaus.plexus.archiver.Archiver;
 import org.codehaus.plexus.archiver.ArchiverException;
@@ -70,6 +72,9 @@ public class TaglibXmlResourceTransformer extends BaseFacesResourceTransformer {
             FACELET_TAGLIB, NAMESPACE);
 
     private final Map<String, List<Document>> tagLibraries = new HashMap<String, List<Document>>();
+    
+    // ensures that each library will be processed only once
+    private final Set<String> tagLibrariesProcessed = new HashSet<String>();
 
     private final Map<String, Document> passThroughLibraries = new HashMap<String, Document>();
 
@@ -193,6 +198,12 @@ public class TaglibXmlResourceTransformer extends BaseFacesResourceTransformer {
         if (namespaceUri == null || namespaceUri.length() == 0) {
             passThroughLibraries.put(resource, document);
         } else {
+            if (tagLibrariesProcessed.contains(namespaceUri)) {
+                return;
+            } else {
+                tagLibrariesProcessed.add(namespaceUri);
+            }
+            
             for (Taglib taglib : taglibs) {
                 if (taglib.matches(namespaceUri)) {
                     namespaceUri = taglib.getTargetNamespace();
