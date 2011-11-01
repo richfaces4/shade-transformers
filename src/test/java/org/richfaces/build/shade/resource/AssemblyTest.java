@@ -105,9 +105,13 @@ public class AssemblyTest
 
         ContainerDescriptorHandlerConfig facesConfig = new ContainerDescriptorHandlerConfig();
         facesConfig.setHandlerName( "faces-xml" );
+        
+        ContainerDescriptorHandlerConfig resourceMappingProperties = new ContainerDescriptorHandlerConfig();
+        resourceMappingProperties.setHandlerName( "resource-mappings-properties" );
 
         assembly.addContainerDescriptorHandler( taglibConfig );
         assembly.addContainerDescriptorHandler( facesConfig );
+        assembly.addContainerDescriptorHandler( resourceMappingProperties );
 
         File jarBasedir = new File( getBasedir(), "src/test/jars" );
 
@@ -186,6 +190,8 @@ public class AssemblyTest
             model.addDependency( newDep( "componentcontrol-ui", "4.0.0-SNAPSHOT" ) );
             model.addDependency( newDep( "functions-ui", "4.0.0-SNAPSHOT" ) );
             model.addDependency( newDep( "richfaces-ui-core-ui", "4.0.0-SNAPSHOT" ) );
+            model.addDependency( newDep( "richfaces-ui-input-ui", "4.1.0-SNAPSHOT" ) );
+            model.addDependency( newDep( "richfaces-ui-iteration-ui", "4.1.0-SNAPSHOT" ) );
 
             project = new MavenProject( model );
 
