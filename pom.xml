@@ -11,7 +11,7 @@
 
     <groupId>org.richfaces.build.resources</groupId>
     <artifactId>faces-shade-transformers</artifactId>
-    <version>5</version>
+    <version>7-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>RichFaces Shade Transformers</name>
 
@@ -32,8 +32,9 @@
     <dependencies>
         <dependency>
             <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-shade-plugin</artifactId>
-            <version>1.3.3</version>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <version>2.2.1</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.jdom</groupId>
@@ -44,6 +45,20 @@
             <groupId>jaxen</groupId>
             <artifactId>jaxen</artifactId>
             <version>1.1.1</version>
+        </dependency>
+        <dependency>
+          <groupId>junit</groupId>
+          <artifactId>junit</artifactId>
+          <version>4.8.2</version>
+          <scope>test</scope>
+        </dependency>
+        
+        <!-- Used to fix "java.lang.NoSuchFieldError: fFeatures" error when running test. -->
+        <dependency>
+          <groupId>xerces</groupId>
+          <artifactId>xercesImpl</artifactId>
+          <version>2.7.1</version>
+          <scope>test</scope>
         </dependency>
     </dependencies>
     
