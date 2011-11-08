@@ -13,5 +13,11 @@
       <implementation>org.richfaces.build.shade.resource.FacesConfigXmlResourceTransformer</implementation>
       <instantiation-strategy>per-lookup</instantiation-strategy>
     </component>
+    <component>
+      <role>org.apache.maven.plugin.assembly.filter.ContainerDescriptorHandler</role>
+      <role-hint>resource-mappings-properties</role-hint>
+      <implementation>org.richfaces.build.shade.resource.ResourceMappingsPropertiesTransformer</implementation>
+      <instantiation-strategy>per-lookup</instantiation-strategy>
+    </component>
   </components>
 </component-set>
