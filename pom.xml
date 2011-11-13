@@ -11,7 +11,7 @@
 
     <groupId>org.richfaces.build.resources</groupId>
     <artifactId>faces-shade-transformers</artifactId>
-    <version>7-SNAPSHOT</version>
+    <version>7</version>
     <packaging>jar</packaging>
     <name>RichFaces Shade Transformers</name>
 
