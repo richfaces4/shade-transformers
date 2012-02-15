@@ -71,6 +71,8 @@ public abstract class BaseFacesResourceTransformer implements ContainerDescripto
     private boolean excludeOverride = false;
 
     private boolean hasProcessedConfigFiles;
+    
+    private String outputDirectory;
 
     protected static XPath createXPath(final String path) throws JDOMException {
         XPath xPath = XPath.newInstance(path);
@@ -164,13 +166,25 @@ public abstract class BaseFacesResourceTransformer implements ContainerDescripto
         archiver.addFile(f, path);
         excludeOverride = false;
     }
+    
+    public String getOutputDirectory() {
+        return outputDirectory;
+    }
+    
+    public void setOutputDirectory(String outputDirectory) {
+        this.outputDirectory = outputDirectory;
+    }
 
     protected void outputFilesToSeparateDir(final Document document, final String resourceName, final Format format)
             throws IOException {
-        String targetPath = "target/taglibs/";
-        File path = new File(targetPath + META_INF_PATH);
-        path.mkdirs();
-        FileOutputStream outFiles = new FileOutputStream(targetPath + resourceName);
+        if (outputDirectory == null) {
+            throw new NullPointerException("outputDirectory can't be null");
+        }
+        File outputDir = new File(outputDirectory).getAbsoluteFile();
+        File metaInfDir = new File(outputDir, META_INF_PATH);
+        metaInfDir.mkdirs();
+        File outputFile = new File(outputDir, resourceName);
+        FileOutputStream outFiles = new FileOutputStream(outputFile);
         try {
             new XMLOutputter(format).output(document, outFiles);
         } finally {

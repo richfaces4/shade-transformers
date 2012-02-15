@@ -21,11 +21,13 @@
  */
 package org.richfaces.build.shade.resource;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 import java.util.jar.JarEntry;
@@ -52,6 +54,9 @@ import org.apache.maven.shared.filtering.MavenFileFilter;
 import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.PlexusTestCase;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
+import org.codehaus.plexus.util.xml.Xpp3DomUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -99,12 +104,17 @@ public class AssemblyTest
         ds.setUseProjectArtifact( false );
 
         assembly.addDependencySet( ds );
-
+        
+        String configuration = "<configuration><outputDirectory>target/taglibs</outputDirectory></configuration>";
+        Xpp3Dom configurationDom = Xpp3DomBuilder.build(new ByteArrayInputStream(configuration.getBytes()), "UTF-8");
+        
         ContainerDescriptorHandlerConfig taglibConfig = new ContainerDescriptorHandlerConfig();
         taglibConfig.setHandlerName( "taglib-xml" );
+        taglibConfig.setConfiguration(configurationDom);
 
         ContainerDescriptorHandlerConfig facesConfig = new ContainerDescriptorHandlerConfig();
         facesConfig.setHandlerName( "faces-xml" );
+        facesConfig.setConfiguration(configurationDom);
         
         ContainerDescriptorHandlerConfig resourceMappingProperties = new ContainerDescriptorHandlerConfig();
         resourceMappingProperties.setHandlerName( "resource-mappings-properties" );
@@ -165,7 +175,7 @@ public class AssemblyTest
                                  final TemporaryFolder tempFolder )
             throws ComponentLookupException
         {
-            this.basedir = tempFolder.newFolder( "assembly-basedir" );
+            this.basedir = tempFolder.newFolder( "target/test-assembly-basedir" );
 
             this.mavenFileFilter = (MavenFileFilter) container.lookup( MavenFileFilter.class.getName() );
             remoteRepos =
